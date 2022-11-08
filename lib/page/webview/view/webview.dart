@@ -10,7 +10,7 @@ class Webview extends GetView<WebviewController> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: InAppWebView(
-        initialUrlRequest: URLRequest(url: Uri.parse("https://uzinfocom.uz/uz/")),
+        initialUrlRequest: URLRequest(url: Uri.parse(controller.url[0])),
       ),
     );
   }

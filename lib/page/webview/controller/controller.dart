@@ -2,10 +2,13 @@ import 'package:get/get.dart';
 import 'package:kiosk_mode/kiosk_mode.dart';
 
 class WebviewController extends SuperController {
+
+ var url  = Get.arguments;
+
   @override
   void onInit() {
     startKioskMode();
-    print("aaa onInit");
+    print("aaa onInit ${url[0]}");
     super.onInit();
   }
 
@@ -26,7 +29,7 @@ class WebviewController extends SuperController {
 
   @override
   void onResumed() {
-    startKioskMode();
+    //startKioskMode();
     print("aaa onResumed");
   }
 }
