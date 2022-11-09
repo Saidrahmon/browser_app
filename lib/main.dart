@@ -1,3 +1,4 @@
+import 'package:browser_app/AppBinding.dart';
 import 'package:browser_app/AppPages.dart';
 import 'package:browser_app/AppRoutes.dart';
 import 'package:flutter/material.dart';
@@ -20,6 +21,10 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       getPages: AppPages.routes,
       initialRoute: AppRoutes.HOME,
+      theme: ThemeData(
+        primarySwatch: Colors.green
+      ),
+      initialBinding: AppBinding(),
     );
   }
 }

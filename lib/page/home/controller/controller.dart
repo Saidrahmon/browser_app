@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:browser_app/AppRoutes.dart';
+import 'package:browser_app/repository/Storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:fullscreen/fullscreen.dart';
@@ -7,25 +9,32 @@ import 'package:get_storage/get_storage.dart';
 import 'package:wakelock/wakelock.dart';
 
 class HomeController extends SuperController {
+  final box = GetStorage();
+
+  Storage storage = Get.find();
+
   TextEditingController textEditingController = TextEditingController();
+  final formKey = GlobalKey<FormState>();
+
   var isSwitch = false.obs;
   var isAwake = false.obs;
   var isFullScreen = false.obs;
-  final box = GetStorage();
+  var isIncognito = false.obs;
 
   @override
   void onInit() {
     super.onInit();
     textEditingController.text = "https://";
-
-    initData();
-
-    var url = box.read("url");
-    if (url != null) {
+    print("mmmm" + storage.url);
+    if (storage.url.isNotEmpty) {
       SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
-        Get.offAndToNamed(AppRoutes.WEBVIEW, arguments: [url.toString()]);
+        Get.offAndToNamed(AppRoutes.WEBVIEW, arguments: [storage.url]);
       });
     }
+    initData();
+
+    //var url = box.read("url");
+
   }
 
   @override
@@ -40,15 +49,39 @@ class HomeController extends SuperController {
   @override
   void onResumed() {}
 
-  void checkUrl() {
-    if (textEditingController.text.isURL) {
-      if (isSwitch.value) {
-        box.write("url", textEditingController.text);
-      }
-
-      Get.offAndToNamed(AppRoutes.WEBVIEW,
-          arguments: [textEditingController.text]);
+  String? validateUrl(String? url) {
+    if (url == null || url.isEmpty) {
+      return 'Url is empty!';
+    } else if (!url.isURL) {
+      return 'Url is not url!';
+    } else if (!checkBlockList(url)) {
+      return 'Url is blocked!';
     }
+    return null;
+  }
+
+  void checkUrl() {
+    if (formKey.currentState!.validate()) {
+      if (isSwitch.value) {
+        storage.url = textEditingController.text;
+        // box.write("url", textEditingController.text);
+      }
+      Get.offAndToNamed(AppRoutes.WEBVIEW, arguments: [textEditingController.text]);
+    }
+  }
+
+  bool checkBlockList(String url) {
+    var map = box.read("block_list");
+    if (map != null) {
+      List<String> blockLists = jsonDecode(map).cast<String>() ?? [];
+      for (String blockUrl in blockLists) {
+        if (blockUrl == url) {
+          return false;
+        }
+      }
+    }
+
+    return true;
   }
 
   void awakeScreen() {
@@ -67,11 +100,9 @@ class HomeController extends SuperController {
     if (isFullScreen.value) {
       box.write("is_full_screen", true);
       await FullScreen.enterFullScreen(FullScreenMode.EMERSIVE_STICKY);
-
     } else {
       box.write("is_full_screen", false);
       await FullScreen.exitFullScreen();
-
     }
   }
 
